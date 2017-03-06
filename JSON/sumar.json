@@ -1,0 +1,4 @@
+{
+	"Nombre": "sumar",
+	"Instruccion": "print(Parametro1+Parametro2)"
+}

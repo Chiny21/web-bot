@@ -1,0 +1,4 @@
+{
+	"Nombre": "darIP",
+	"Instruccion": "laIP = request.remote_addr\nprint(laIP)"
+}

@@ -1,0 +1,4 @@
+{
+	"Nombre": "multiplicar",
+	"Instruccion": "print(Parametro1*Parametro2)"
+}

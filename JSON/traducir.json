@@ -1,0 +1,4 @@
+{
+	"Nombre": "traducir",
+	"Instruccion": "from googleapiclient.discovery import build\nservice = build('translate', 'v2', developerKey='AIzaSyDPdHtSZtAWcaW4ip3iapBVp2aE2AD30Do')\nlaTraduccion = service.translations().list(source=Parametro1, target=Parametro2, q=Parametro3).execute()\nelJSON = json.dumps(laTraduccion)\nelParseo = json.loads(elJSON)\nprint(elParseo['translations'][0]['translatedText'])"
+}

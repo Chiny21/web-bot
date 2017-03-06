@@ -1,0 +1,4 @@
+{
+	"Nombre": "abrirPrograma",
+	"Instruccion": "import pyautogui\npyautogui.FAILSAFE = True\npyautogui.PAUSE = 2\npyautogui.press('winleft')\npyautogui.typewrite(Parametro1)\npyautogui.press('enter')"
+}
