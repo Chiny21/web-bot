@@ -32,7 +32,7 @@ def verifiqueRutas():
         elLog = {"_id": str(ObjectId()), "Usuario": elUsuario, "Fecha": datetime.datetime.now(), "Accion": "Error 404"}     # DEFINE EL LOG
         laBaseDeDatos.Log_Operaciones.insert_one(elLog)
 
-        elTexto = "Lo siento. No conozco esa ruta."                                                                         #SE CREA UNA RESPUESTA
+        elTexto = "Lo siento. No conozco esa ruta o el método es inválido."                                                 #SE CREA UNA RESPUESTA
         laRespuesta = json.dumps(elTexto)                                                                                   #SE CONVIERTE A JSON
         return Response(laRespuesta, 404, mimetype="application/json")                                                      #SE RETORNA LA RESPUESTA CON LOS DATOS NECESARIOS
 
@@ -43,31 +43,35 @@ def redirecciona():
     laBaseDeDatos.Log_Operaciones.insert_one(elLog)                                                                         #INSERTA EL LOG A LA BASE DE DATOS
     return redirect(url_for('bienvenida'), 301)                                                                             #REDIRECCIONA A LA RUTA DE BIENVENIDA
 
+
 @app.route('/api/web-bot/bienvenida', methods=['GET','POST'])
 def bienvenida():
-    if request.method == 'GET':
-        elUsuario = definaElUsuario()                                                                                               #DEFINE EL USUARIO
-        elLog = {"_id": str(ObjectId()), "Usuario": elUsuario, "Fecha": datetime.datetime.now(), "Accion": "Bienvenida 'GET'"}      #DEFINE EL LOG
-        laBaseDeDatos.Log_Operaciones.insert_one(elLog)                                                                             #INSERTA EL LOG A LA BASE DE DATOS
-        elTexto = '¡Bienvenido! ¡Soy W-Bot! ¿Cómo te llamas?'                                                                   #SE CREA LA RESPUESTA
-        laRespuesta = json.dumps(elTexto)                                                                                           #SE CONVIERTE A JSON
-        return Response(laRespuesta, 200, mimetype="application/json")                                                              #SE RETORNA LA RESPUESTA CON LOS DATOS NECESARIOS
-    else:
-        elArgumento = request.args                                                                                                  #TRAE LOS PARAMETROS ENVIADOS
-        elNombre = elArgumento['miNombre']                                                                                          #BUSCA EL PARAMETRO BAJO LA LLAVE: MINOMBRE
-        laDireccion = request.remote_addr                                                                                           #RECIBE LA DIRECCION IP DEL USUARIO
-        elUsuario = {'_id': laDireccion, "Nombre": elNombre}                                                                        #DEFINE AL USUARIO CON AMBOS ATRIBUTOS
-
-        if laBaseDeDatos.Usuarios.find({"_id": laDireccion}).count() == 0:                                                          #SI NO EXISTE EL USUARIO EN LA BASE DE DATOS
-            laBaseDeDatos.Usuarios.insert_one(elUsuario)                                                                            #INSERTA EL USUARIO
+    try:
+        if request.method == 'GET':
+            elUsuario = definaElUsuario()                                                                                               #DEFINE EL USUARIO
+            elLog = {"_id": str(ObjectId()), "Usuario": elUsuario, "Fecha": datetime.datetime.now(), "Accion": "Bienvenida 'GET'"}      #DEFINE EL LOG
+            laBaseDeDatos.Log_Operaciones.insert_one(elLog)                                                                             #INSERTA EL LOG A LA BASE DE DATOS
+            elTexto = '¡Bienvenido! ¡Soy W-Bot! ¿Cómo te llamas?'                                                                       #SE CREA LA RESPUESTA
+            laRespuesta = json.dumps(elTexto)                                                                                           #SE CONVIERTE A JSON
+            return Response(laRespuesta, 200, mimetype="application/json")                                                              #SE RETORNA LA RESPUESTA CON LOS DATOS NECESARIOS
         else:
-            laBaseDeDatos.Usuarios.update({"_id": laDireccion}, {"Nombre": elNombre})                                               #ACTUALIZA EL NOMBRE
+            elArgumento = request.args                                                                                                  #TRAE LOS PARAMETROS ENVIADOS
+            elNombre = elArgumento['miNombre']                                                                                          #BUSCA EL PARAMETRO BAJO LA LLAVE: MINOMBRE
+            laDireccion = request.remote_addr                                                                                           #RECIBE LA DIRECCION IP DEL USUARIO
+            elUsuario = {'_id': laDireccion, "Nombre": elNombre}                                                                        #DEFINE AL USUARIO CON AMBOS ATRIBUTOS
 
-        elLog = {"_id": str(ObjectId()), "Usuario": elNombre, "Fecha": datetime.datetime.now(), "Accion": "Bienvenida 'POST'"}      #DEFINE EL LOG
-        laBaseDeDatos.Log_Operaciones.insert_one(elLog)                                                                             #INSERTA EL LOG A LABASE DE DATOS
-        elTexto = '¡Hola ' + elNombre + '! ¿En qué puedo ayudarte?'                                                                 #SE CREA LA RESPUESTA
-        laRespuesta = json.dumps(elTexto)                                                                                           #SE CONVIERTE A JSON
-        return Response(laRespuesta, 200, mimetype="application/json")                                                              #SE RETORNA LA RESPUESTA CON LOS DATOS NECESARIOS
+            if laBaseDeDatos.Usuarios.find({"_id": laDireccion}).count() == 0:                                                          #SI NO EXISTE EL USUARIO EN LA BASE DE DATOS
+                laBaseDeDatos.Usuarios.insert_one(elUsuario)                                                                            #INSERTA EL USUARIO
+            else:
+                laBaseDeDatos.Usuarios.update({"_id": laDireccion}, {"Nombre": elNombre})                                               #ACTUALIZA EL NOMBRE
+
+            elLog = {"_id": str(ObjectId()), "Usuario": elNombre, "Fecha": datetime.datetime.now(), "Accion": "Bienvenida 'POST'"}      #DEFINE EL LOG
+            laBaseDeDatos.Log_Operaciones.insert_one(elLog)                                                                             #INSERTA EL LOG A LABASE DE DATOS
+            elTexto = '¡Hola ' + elNombre + '! ¿En qué puedo ayudarte?'                                                                 #SE CREA LA RESPUESTA
+            laRespuesta = json.dumps(elTexto)                                                                                           #SE CONVIERTE A JSON
+            return Response(laRespuesta, 200, mimetype="application/json")                                                              #SE RETORNA LA RESPUESTA CON LOS DATOS NECESARIOS
+    except Exception as e:
+        return formateeElError(e)
 
 @app.route('/api/web-bot/operaciones', methods=['GET'])
 def mostrarOperaciones():
@@ -227,9 +231,18 @@ def definaElUsuario():
         elUsuario = laSolicitud["Nombre"]                               #OBTIENE EL NOMBRE DEL USUARIO
     return elUsuario                                                    #RETORNA EL NOMBRE O LA DIRECCION DEL USUARIO
 
+def formateeElError(e):
+    elErrorComoTexto = str(e)
+    elEnunciado = "Lo lamento. Ha ocurrido un error " + elErrorComoTexto
+    elEnunciadoComoJSON = json.dumps(elEnunciado)
+    elErrorHTTP = elErrorComoTexto[:3]
+    return Response(elEnunciadoComoJSON, elErrorHTTP, mimetype="application/json")
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000, host='0.0.0.0')
 
 #TODO: DEVOLVER JSONS EN CADA RETURN
 #TODO: RETORNAR ERROR CON METODOS HTTP DESCONOCIDOS
 #TODO: HACER TRY-CATCH PARA CUALQUIER ERROR EN CADA METODO
+#TODO: HACER UN METODO PARA CREAR LOS LOGS PASANDO POR PARAMETRO LA ACCION
+#TODO: COMENTAR LAS NUEVAS LINEAS
