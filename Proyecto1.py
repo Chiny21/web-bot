@@ -75,35 +75,35 @@ def bienvenida():
 
 @app.route('/api/web-bot/operaciones', methods=['GET'])
 def mostrarOperaciones():
-    elResultado = ""                                                                                                            #SE DEFINE UN RESULTADO VACIO
+    elResultado = {}                                                                                                            #DEFINE UN DICCIONARIO VACIO
+    elContador = 1                                                                                                              #DEFINE UN CONTADOR
     losLogs = laBaseDeDatos.Log_Operaciones.find()                                                                              #OBTIENE TODOS LOS LOGS DE OPERACIONES
     for cadaLog in losLogs:                                                                                                     #PARA CADA LOG QUE TRAE
         elJSON = json.dumps(cadaLog)                                                                                            #LO CONVIERTE A JSON
-        elParseo = json.loads(elJSON)                                                                                           #LO CARGA PARA PERMITIR PARSEAR
-        elID = elParseo["_id"]                                                                                                  #OBTIENE EL ID
-        elNombre = elParseo["Usuario"]                                                                                          #OBTIENE EL USUARIO
-        laFecha = elParseo["Fecha"]                                                                                             #OBTIENE LA FECHA
-        laAccion = elParseo["Accion"]                                                                                           #OBTIENE LA ACCION REALIZADA
-        elResultado += "\nID: " + elID + "\nUsuario: " + elNombre + "\nFecha: " + laFecha + "\nAccion: " + laAccion + "\n"      #AGREGA CADA VALOR AL RESULTADO
+        elResultado["Operacion_"+str(elContador)] = elJSON                                                                      #AGREGA CADA VALOR AL DICCIONARIO
+        elContador += 1                                                                                                         #AUMENTA EL CONTADOR
 
     elUsuario = definaElUsuario()                                                                                               #DEFINE EL USUARIO
-    elLog = {"_id": str(ObjectId()), "Usuario": elUsuario, "Fecha": datetime.datetime.now(), "Accion": "Mostrar operaciones"}   #DEFINE EL LOG
+    elLog = {"_id": str(ObjectId()), "Usuario": elUsuario, "Fecha": datetime.datetime.now(), "Accion": "Operaciones"}           #DEFINE EL LOG
     laBaseDeDatos.Log_Operaciones.insert_one(elLog)                                                                             #INSERTA EL LOG A LA BASE DE DATOS
-    return elResultado                                                                                                          #RETORNA EL RESULTADO
+    laRespuesta = json.dumps(elResultado)                                                                                       #CONVERTE EL DICCIONARIO A JSON
+    return Response(laRespuesta, 200, mimetype="application/json")                                                              #RETORNA LA RESPUESTA CON LOS DATOS NECESARIOS
 
 @app.route('/api/web-bot/memoria', methods=['GET'])
 def mostrarMemoria():
-    elResultado = "Esto es lo que sé hacer:\n"                                                                                  #AGREGA UN TEXTO DESCRIPTIVO AL RESULTADO
+    elResultado = {}                                                                                                            #DEFINE UN DICCIONARIO VACIO
+    elContador = 1                                                                                                              #DEFINE UN CONTADOR
     laMemoria = laBaseDeDatos.Memoria_Aprendizaje.find()                                                                        #OBTIENE LO QUE HA APRENDIDO
     for cadaMemoria in laMemoria:                                                                                               #PARA CADA COSA QUE SABE
         elJSON = json.dumps(cadaMemoria)                                                                                        #LO CONVIERTE A JSON
-        elParseo = json.loads(elJSON)                                                                                           #LO CARGA PARA PERMITIR PARSEAR
-        elResultado += "\n" + elParseo['Nombre'] + ":\n" + elParseo['Instruccion'] + "\n"                                       #AGREGA LOS DOS VALORES AL RESULTADO
+        elResultado["Memoria_"+str(elContador)] = elJSON                                                                        #AGREGA LOS DOS VALORES AL RESULTADO
+        elContador += 1                                                                                                         ##AUMENTA EL CONTADOR
 
     elUsuario = definaElUsuario()                                                                                               #DEFINE EL USUARIO
-    elLog = {"_id": str(ObjectId()), "Usuario": elUsuario, "Fecha": datetime.datetime.now(), "Accion": "Mostrar memoria"}       #DEFINE EL LOG
+    elLog = {"_id": str(ObjectId()), "Usuario": elUsuario, "Fecha": datetime.datetime.now(), "Accion": "Memoria"}               #DEFINE EL LOG
     laBaseDeDatos.Log_Operaciones.insert_one(elLog)                                                                             #INSERTA EL LOG A LA BASE DE DATOS
-    return elResultado                                                                                                          #RETORNA EL RESULTADO
+    laRespuesta = json.dumps(elResultado)                                                                                       #CONVERTE EL DICCIONARIO A JSON
+    return Response(laRespuesta, 200, mimetype="application/json")                                                              #RETORNA LA RESPUESTA CON LOS DATOS NECESARIOS
 
 @app.route('/api/web-bot/aprender', methods=['POST'])
 def aprender():
@@ -116,7 +116,9 @@ def aprender():
         elUsuario = definaElUsuario()                                                                                                                       # DEFINE EL USUARIO
         elLog = {"_id": str(ObjectId()), "Usuario": elUsuario, "Fecha": datetime.datetime.now(), "Accion": "Aprender: " + elNombre + " (Ya existente)"}     #DEFINE EL LOG
         laBaseDeDatos.Log_Operaciones.insert_one(elLog)                                                                                                     #INSERTA EL LOG A LA BASE DE DATOS
-        return "Lo lamento. Ya sé cómo: " + elNombre                                                                                                        #RETORNA UN MENSAJE NEGATIVO
+        elTexto = "Lo lamento. Ya sé cómo: " + elNombre                                                                                                     #GENERA EL TEXTO DE RESPUESTA
+        laRespuesta = json.dumps(elTexto)                                                                                                                   #LO CONVIERTE A JSON
+        return Response(laRespuesta, 200, mimetype="application/json")                                                                                      #RETORNA UN MENSAJE NEGATIVO ADECUADO
 
     laInformacion['_id'] = str(ObjectId())                                                                                                                  #LE AGREGA UN ID A LO QUE APRENDE
     laBaseDeDatos.Memoria_Aprendizaje.insert_one(laInformacion)                                                                                             #AGREGA LA ACCION A LA BASE DE DATOS
@@ -124,7 +126,9 @@ def aprender():
     elUsuario = definaElUsuario()                                                                                                                           #DEFINE EL USUARIO
     elLog = {"_id": str(ObjectId()), "Usuario": elUsuario, "Fecha": datetime.datetime.now(), "Accion": "Aprender: " + elNombre}                             #DEFINE EL LOG
     laBaseDeDatos.Log_Operaciones.insert_one(elLog)                                                                                                         #INSERTA EL LOG A LA BASE DE DATOS
-    return "He aprendido a: " + elNombre                                                                                                                    #RETORNA UN MENSAJE POSITIVO
+    elTexto = "He aprendido a: " + elNombre                                                                                                                 #GENERA EL TEXTO DE RESPUESTA
+    laRespuesta = json.dumps(elTexto)                                                                                                                       #LO CONVIERTE A JSON
+    return Response(laRespuesta, 200, mimetype="application/json")                                                                                          #RETORNA UN MENSAJE POSITIVO ADECUADO
 
 @app.route('/api/web-bot/olvidar', methods=['POST'])
 def olvidar():
@@ -137,12 +141,16 @@ def olvidar():
         elUsuario = definaElUsuario()                                                                                                           # DEFINE EL USUARIO
         elLog = {"_id": str(ObjectId()), "Usuario": elUsuario, "Fecha": datetime.datetime.now(), "Accion": "Olvidar: " + laAccion + " (N/A)"}   #DEFINE EL LOG
         laBaseDeDatos.Log_Operaciones.insert_one(elLog)                                                                                         #LO INSERTA EN LA BASE DE DATOS
-        return "No puedo olvidar algo que nunca supe hacer..."                                                                                  #RETORNA UN MENSAJE NEGATIVO
+        elTexto = "No puedo olvidar algo que nunca supe hacer..."                                                                               #GENERA EL TEXTO DE RESPUESTA
+        laRespuesta = json.dumps(elTexto)                                                                                                       #LO CONVIERTE A JSON
+        return Response(laRespuesta, 200, mimetype="application/json")                                                                          #RETORNA UN MENSAJE NEGATIVO ADECUADO
 
     elUsuario = definaElUsuario()                                                                                                               #DEFINE EL USUARIO
     elLog = {"_id": str(ObjectId()), "Usuario": elUsuario, "Fecha": datetime.datetime.now(), "Accion": "Olvidar: " + laAccion}                  #DEFINE EL LOG
     laBaseDeDatos.Log_Operaciones.insert_one(elLog)                                                                                             #LO INSERTA EN LA BASE DE DATOS
-    return "He olvidado: " + laAccion                                                                                                         #GENERA UN MENSAJE POSITIVO
+    elTexto = "He olvidado: " + laAccion                                                                                                        #GENERA EL TEXTO DE RESPUESTA
+    laRespuesta = json.dumps(elTexto)                                                                                                           #LO CONVIERTE A JSON
+    return Response(laRespuesta, 200, mimetype="application/json")                                                                              #RETORNA UN MENSAJE POSITIVO ADECUADO
 
 @app.route('/api/web-bot/hacer/<accion>', methods=['GET', 'POST'])
 def realizarAccion(accion):
@@ -173,7 +181,9 @@ def realizarAccion(accion):
         elUsuario = definaElUsuario()                                                                                                               # DEFINE EL USUARIO
         elLog = {"_id": str(ObjectId()), "Usuario": elUsuario, "Fecha": datetime.datetime.now(), "Accion": "Realizar: " + accion + " (N/A)"}        #DEFINE EL LOG
         laBaseDeDatos.Log_Operaciones.insert_one(elLog)                                                                                             #INSERTA EL LOG A LA BASE DE DATOS
-        return "Lo lamento. No sé cómo: " + accion                                                                                                  #RETORNA UN MENSAJE NEGATIVO
+        elTexto = "Lo lamento. No sé cómo: " + accion                                                                                               #GENERA EL TEXTO DE RESPUESTA
+        laRespuesta = json.dumps(elTexto)                                                                                                           #LO CONVIERTE A JSON
+        return Response(laRespuesta, 200, mimetype="application/json")                                                                              #RETORNA UN MENSAJE NEGATIVO ADECUADO
 
     elResultado = StringIO()                                                                                                                        #VARIABLE ESPECIAL PARA GUARDAR TEXTO
     sys.stdout = elResultado                                                                                                                        #LO QUE IMPRIMA, LO GUARDA EN LA VARIABLE
@@ -183,7 +193,9 @@ def realizarAccion(accion):
     elUsuario = definaElUsuario()                                                                                                                   #DEFINE EL USUARIO
     elLog = {"_id": str(ObjectId()), "Usuario": elUsuario, "Fecha": datetime.datetime.now(), "Accion": "Realizar: " + accion}                       #DEFINE EL LOG
     laBaseDeDatos.Log_Operaciones.insert_one(elLog)                                                                                                 #INSERTA EL LOG A LA BASE DE DATOS
-    return "El resultado es:\n" + elResultado.getvalue()                                                                                            #RETORNA EL RESULTADO DEL CODIGO EJECUTADO
+    elTexto = elResultado.getvalue()                                                                                                                #GENERA EL TEXTO DE RESPUESTA
+    laRespuesta = json.dumps(elTexto)                                                                                                               #LO CONVIERTE A JSON
+    return Response(laRespuesta, 200, mimetype="application/json")                                                                                  #RETORNA UN MENSAJE POSITIVO ADECUADO
 
 
 @app.route('/api/web-bot/ejecutar/<accion>', methods=['GET','POST'])
@@ -215,14 +227,18 @@ def ejecutarAccion(accion):
         elUsuario = definaElUsuario()                                                                                                               #DEFINE EL USUARIO
         elLog = {"_id": str(ObjectId()), "Usuario": elUsuario, "Fecha": datetime.datetime.now(), "Accion": "Ejecutar: " + accion + " (N/A)"}        #DEFINE EL LOG
         laBaseDeDatos.Log_Operaciones.insert_one(elLog)                                                                                             #INSERTA EL LOG A LA BASE DE DATOS
-        return "Lo lamento. No sé cómo: " + accion                                                                                                  #RETORNA UN MENSAJE NEGATIVO
+        elTexto = "Lo lamento. No sé cómo: " + accion                                                                                               #GENERA EL TEXTO DE RESPUESTA
+        laRespuesta = json.dumps(elTexto)                                                                                                           #LO CONVIERTE A JSON
+        return Response(laRespuesta, 200, mimetype="application/json")                                                                              #RETORNA UN MENSAJE NEGATIVO ADECUADO
 
     exec(elCodigo)                                                                                                                                  #EJECUTA EL CODIGO DE LA INSTRUCCION
 
     elUsuario = definaElUsuario()                                                                                                                   #DEFINE EL USUARIO
     elLog = {"_id": str(ObjectId()), "Usuario": elUsuario, "Fecha": datetime.datetime.now(), "Accion": "Ejecutar: " + accion}                       #DEFINE EL LOG
     laBaseDeDatos.Log_Operaciones.insert_one(elLog)                                                                                                 #INSERTA EL LOG A LA BASE DE DATOS
-    return "Ejecutando: " + accion                                                                                                                  #GENERA UN TEXTO POSITIVO
+    elTexto = "Ejecutando: " + accion                                                                                                               #GENERA EL TEXTO DE RESPUESTA
+    laRespuesta = json.dumps(elTexto)                                                                                                               #LO CONVIERTE A JSON
+    return Response(laRespuesta, 200, mimetype="application/json")                                                                                  #RETORNA UN MENSAJE POSITIVO ADECUADO
 
 def definaElUsuario():
     elUsuario = request.remote_addr                                     #OBTIENE LA DIRECCION IP DEL USUARIO
@@ -241,8 +257,7 @@ def formateeElError(e):
 if __name__ == '__main__':
     app.run(debug=True, port=5000, host='0.0.0.0')
 
-#TODO: DEVOLVER JSONS EN CADA RETURN
-#TODO: RETORNAR ERROR CON METODOS HTTP DESCONOCIDOS
 #TODO: HACER TRY-CATCH PARA CUALQUIER ERROR EN CADA METODO
-#TODO: HACER UN METODO PARA CREAR LOS LOGS PASANDO POR PARAMETRO LA ACCION
 #TODO: COMENTAR LAS NUEVAS LINEAS
+#TODO: REVISAR LA VERIFICACION DE RUTAS
+#TODO: RAISE ERROR EN CUENTA DE PARAMETROS
